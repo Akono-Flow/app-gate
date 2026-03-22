@@ -8,12 +8,9 @@
   <style>
     body {
       display: flex; align-items: center; justify-content: center;
-      min-height: 100vh;
+      min-height: 100vh; overflow: hidden;
       background: var(--bg);
-      overflow: hidden;
     }
-
-    /* Animated background grid */
     body::before {
       content: '';
       position: fixed; inset: 0;
@@ -21,134 +18,78 @@
         linear-gradient(rgba(20,184,166,.04) 1px, transparent 1px),
         linear-gradient(90deg, rgba(20,184,166,.04) 1px, transparent 1px);
       background-size: 40px 40px;
-      pointer-events: none;
-      z-index: 0;
+      pointer-events: none; z-index: 0;
     }
     body::after {
       content: '';
-      position: fixed;
-      top: -40%; left: -20%;
+      position: fixed; top: -40%; left: -20%;
       width: 600px; height: 600px;
       background: radial-gradient(circle, rgba(20,184,166,.07) 0%, transparent 60%);
-      pointer-events: none;
-      z-index: 0;
+      pointer-events: none; z-index: 0;
       animation: pulse 8s ease-in-out infinite;
     }
     @keyframes pulse {
-      0%,100% { transform: scale(1); opacity: .7; }
-      50%      { transform: scale(1.1); opacity: 1; }
+      0%,100% { transform: scale(1); opacity:.7; }
+      50%      { transform: scale(1.1); opacity:1; }
     }
-
     .auth-wrapper {
       position: relative; z-index: 1;
-      width: 100%; max-width: 420px;
-      padding: 1rem;
+      width: 100%; max-width: 420px; padding: 1rem;
       animation: fadeUp .5s ease both;
     }
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(16px); }
-      to   { opacity: 1; transform: translateY(0); }
+      from { opacity:0; transform:translateY(16px); }
+      to   { opacity:1; transform:translateY(0); }
     }
-
-    .auth-logo {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
+    .auth-logo { text-align:center; margin-bottom:2rem; }
     .auth-logo h1 {
-      font-family: var(--mono);
-      font-size: 1.75rem;
-      color: var(--accent);
-      letter-spacing: .1em;
+      font-family: var(--mono); font-size:1.75rem;
+      color:var(--accent); letter-spacing:.1em;
     }
-    .auth-logo p {
-      font-size: .875rem;
-      color: var(--text-muted);
-      margin-top: .25rem;
-    }
-
+    .auth-logo p { font-size:.875rem; color:var(--text-muted); margin-top:.25rem; }
     .auth-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      overflow: hidden;
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:var(--radius-lg); overflow:hidden;
     }
-
-    /* Tab switcher */
-    .auth-tabs {
-      display: flex;
-      border-bottom: 1px solid var(--border);
-    }
+    .auth-tabs { display:flex; border-bottom:1px solid var(--border); }
     .auth-tab {
-      flex: 1;
-      padding: .9rem;
-      background: none;
-      border: none;
-      font-family: var(--sans);
-      font-size: .9rem;
-      font-weight: 500;
-      color: var(--text-muted);
-      cursor: pointer;
-      transition: color .2s, background .2s;
-      position: relative;
+      flex:1; padding:.9rem; background:none; border:none;
+      font-family:var(--sans); font-size:.9rem; font-weight:500;
+      color:var(--text-muted); cursor:pointer;
+      transition:color .2s, background .2s; position:relative;
     }
     .auth-tab::after {
-      content: '';
-      position: absolute;
-      bottom: -1px; left: 0; right: 0;
-      height: 2px;
-      background: var(--accent);
-      transform: scaleX(0);
-      transition: transform .25s;
+      content:''; position:absolute; bottom:-1px; left:0; right:0;
+      height:2px; background:var(--accent);
+      transform:scaleX(0); transition:transform .25s;
     }
-    .auth-tab.active {
-      color: var(--accent);
-      background: rgba(20,184,166,.05);
+    .auth-tab.active { color:var(--accent); background:rgba(20,184,166,.05); }
+    .auth-tab.active::after { transform:scaleX(1); }
+    .auth-form {
+      padding:1.75rem; display:flex; flex-direction:column; gap:1.1rem;
     }
-    .auth-tab.active::after { transform: scaleX(1); }
-
-    .auth-form { padding: 1.75rem; display: flex; flex-direction: column; gap: 1.1rem; }
-    .auth-form.hidden { display: none; }
-
-    .auth-divider {
-      display: flex; align-items: center; gap: .75rem;
-      color: var(--text-muted); font-size: .8rem;
+    .auth-form.hidden { display:none; }
+    .notice {
+      border-radius:var(--radius); padding:.75rem 1rem;
+      font-size:.875rem; display:none;
     }
-    .auth-divider::before, .auth-divider::after {
-      content: ''; flex: 1;
-      height: 1px; background: var(--border);
+    .notice.show { display:flex; align-items:flex-start; gap:.5rem; }
+    .notice-warn {
+      background:rgba(234,179,8,.08); border:1px solid rgba(234,179,8,.25);
+      color:#fde047;
     }
-
-    .reason-banner {
-      display: none;
-      background: rgba(239,68,68,.1);
-      border: 1px solid rgba(239,68,68,.3);
-      color: #fca5a5;
-      border-radius: var(--radius);
-      padding: .75rem 1rem;
-      font-size: .875rem;
-      gap: .5rem;
-      align-items: flex-start;
+    .notice-info {
+      background:rgba(20,184,166,.08); border:1px solid rgba(20,184,166,.2);
+      color:#5eead4;
     }
-    .reason-banner.show { display: flex; }
-
-    .pending-notice {
-      background: rgba(234,179,8,.08);
-      border: 1px solid rgba(234,179,8,.25);
-      color: #fde047;
-      border-radius: var(--radius);
-      padding: .85rem 1rem;
-      font-size: .875rem;
-      text-align: center;
-      display: none;
+    .notice-error {
+      background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.3);
+      color:#fca5a5;
     }
-    .pending-notice.show { display: block; }
-
     .auth-footer {
-      text-align: center;
-      padding: 1rem 1.75rem;
-      border-top: 1px solid var(--border);
-      font-size: .8125rem;
-      color: var(--text-muted);
+      text-align:center; padding:1rem 1.75rem;
+      border-top:1px solid var(--border);
+      font-size:.8125rem; color:var(--text-muted);
     }
   </style>
 </head>
@@ -160,19 +101,17 @@
     </div>
 
     <div class="auth-card">
-      <!-- Tabs -->
       <div class="auth-tabs">
-        <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Sign In</button>
+        <button class="auth-tab active" id="tab-login"  onclick="switchTab('login')">Sign In</button>
         <button class="auth-tab"        id="tab-signup" onclick="switchTab('signup')">Sign Up</button>
       </div>
 
-      <!-- Error / reason banner -->
-      <div id="reason-banner" class="reason-banner" style="margin: 1rem 1.75rem 0; display:none;">
-        <span>⚠</span>
-        <span id="reason-text"></span>
+      <!-- Reason banner (shown via URL param) -->
+      <div id="reason-banner" class="notice notice-error" style="margin:1rem 1.75rem 0;">
+        <span>⚠</span><span id="reason-text"></span>
       </div>
 
-      <!-- LOGIN FORM -->
+      <!-- ── LOGIN FORM ── -->
       <form class="auth-form" id="form-login" onsubmit="handleLogin(event)">
         <div class="form-group">
           <label for="login-email">Email address</label>
@@ -181,21 +120,20 @@
         <div class="form-group">
           <label for="login-password">
             Password
-            <a href="#" style="float:right; font-size:.8rem;" onclick="handleForgot(event)">Forgot?</a>
+            <a href="#" style="float:right;font-size:.8rem;" onclick="handleForgot(event)">Forgot?</a>
           </label>
           <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password">
         </div>
 
-        <button type="submit" class="btn btn-primary btn-full" id="btn-login">
-          Sign In
-        </button>
+        <button type="submit" class="btn btn-primary btn-full" id="btn-login">Sign In</button>
 
-        <div id="pending-notice" class="pending-notice">
+        <!-- Shown after signup, or when account is pending -->
+        <div id="pending-notice" class="notice notice-info">
           ✅ Account created! An admin must activate your account before you can sign in.
         </div>
       </form>
 
-      <!-- SIGNUP FORM -->
+      <!-- ── SIGNUP FORM ── -->
       <form class="auth-form hidden" id="form-signup" onsubmit="handleSignup(event)">
         <div class="form-group">
           <label for="signup-name">Full name</label>
@@ -213,12 +151,8 @@
           <label for="signup-confirm">Confirm password</label>
           <input type="password" id="signup-confirm" placeholder="Repeat password" required autocomplete="new-password">
         </div>
-
-        <button type="submit" class="btn btn-primary btn-full" id="btn-signup">
-          Create Account
-        </button>
-
-        <p style="font-size:.8125rem; color: var(--text-muted); text-align:center;">
+        <button type="submit" class="btn btn-primary btn-full" id="btn-signup">Create Account</button>
+        <p style="font-size:.8125rem;color:var(--text-muted);text-align:center;">
           New accounts require admin approval before you can sign in.
         </p>
       </form>
@@ -229,49 +163,54 @@
     </div>
   </div>
 
-  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="js/config.js"></script>
   <script src="js/auth.js"></script>
   <script>
-    // ── Init ──────────────────────────────────────────────────
     document.getElementById('logo-name').textContent = APP_NAME.toUpperCase();
     document.title = `Login — ${APP_NAME}`;
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // Show reason banner from URL param
+    // ── Reason banner ─────────────────────────────────────────
     const params = new URLSearchParams(location.search);
     const reason = params.get('reason');
     if (reason) {
-      const banner = document.getElementById('reason-banner');
-      const text   = document.getElementById('reason-text');
-      const msgs   = {
-        inactive:  'Your account has been deactivated. Please contact an administrator.',
-        forbidden: 'You do not have permission to access that page.',
-        timeout:   'Your session expired. Please sign in again.',
+      const msgs = {
+        inactive:        'Your account has been deactivated. Please contact an administrator.',
+        forbidden:       'You do not have permission to access that page.',
+        session_invalid: 'This account is already active on another device. Contact an administrator to reset your session if you need access on this device.',
+        timeout:         'Your session expired. Please sign in again.',
       };
-      text.textContent = msgs[reason] || 'Access denied.';
-      banner.style.display = 'flex';
+      const text = msgs[reason] || 'Access denied.';
+      const banner = document.getElementById('reason-banner');
+      document.getElementById('reason-text').textContent = text;
+      banner.classList.add('show');
     }
 
-    // Redirect if already logged in and active
+    // ── Redirect if already logged in and valid ───────────────
     (async () => {
       const { session, profile } = await getSessionAndProfile();
-      if (session && profile && profile.is_active) {
-        location.href = profile.role === 'admin' ? 'admin.html' : 'mcq.html';
+      if (!session || !profile || !profile.is_active) return;
+
+      // Check device token before auto-redirecting
+      if (profile.session_token) {
+        const local = localStorage.getItem(SESSION_TOKEN_KEY);
+        if (local !== profile.session_token) return; // wrong device, stay on login
       }
+
+      location.href = profile.role === 'admin' ? 'admin.html' : 'app.html';
     })();
 
-    // ── Tab switcher ─────────────────────────────────────────
+    // ── Tab switcher ──────────────────────────────────────────
     function switchTab(tab) {
-      document.getElementById('form-login').classList.toggle('hidden',  tab !== 'login');
-      document.getElementById('form-signup').classList.toggle('hidden', tab !== 'signup');
-      document.getElementById('tab-login').classList.toggle('active',   tab === 'login');
-      document.getElementById('tab-signup').classList.toggle('active',  tab === 'signup');
-      document.getElementById('reason-banner').style.display = 'none';
+      document.getElementById('form-login').classList.toggle('hidden',   tab !== 'login');
+      document.getElementById('form-signup').classList.toggle('hidden',  tab !== 'signup');
+      document.getElementById('tab-login').classList.toggle('active',    tab === 'login');
+      document.getElementById('tab-signup').classList.toggle('active',   tab === 'signup');
+      document.getElementById('reason-banner').classList.remove('show');
     }
 
-    // ── Login ─────────────────────────────────────────────────
+    // ── LOGIN ─────────────────────────────────────────────────
     async function handleLogin(e) {
       e.preventDefault();
       const btn   = document.getElementById('btn-login');
@@ -281,40 +220,107 @@
       btn.disabled = true;
       btn.innerHTML = '<span class="sb-spinner"></span> Signing in…';
 
+      // Step 1 — authenticate with Supabase
       const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
-
       if (error) {
         showToast(error.message, 'error');
-        btn.disabled = false;
-        btn.textContent = 'Sign In';
+        btn.disabled = false; btn.textContent = 'Sign In';
         return;
       }
 
-      // Check active status
-      const { data: profile } = await sb.from('profiles').select('*').eq('id', data.user.id).single();
+      // Step 2 — fetch profile
+      const { data: profile, error: profErr } = await sb
+        .from('profiles')
+        .select('*')
+        .eq('id', data.user.id)
+        .single();
 
-      if (!profile || !profile.is_active) {
+      if (profErr || !profile) {
+        await sb.auth.signOut();
+        showToast('Could not load your profile. Contact an admin.', 'error');
+        btn.disabled = false; btn.textContent = 'Sign In';
+        return;
+      }
+
+      // Step 3 — check active
+      if (!profile.is_active) {
         await sb.auth.signOut();
         showToast('Your account is not yet active. Contact an admin.', 'error');
-        btn.disabled = false;
-        btn.textContent = 'Sign In';
+        btn.disabled = false; btn.textContent = 'Sign In';
         return;
       }
 
+      // Step 4 — single device check
+      //
+      //  Case A: no token in Supabase yet (fresh account or admin reset)
+      //          → this is the first / newly authorised login.
+      //          → generate a token, save to Supabase and localStorage.
+      //
+      //  Case B: token exists in Supabase AND matches localStorage
+      //          → same device logging in again. Allow it.
+      //
+      //  Case C: token exists in Supabase but does NOT match localStorage
+      //          → a different device is trying to log in. Reject.
+
+      const localToken = localStorage.getItem(SESSION_TOKEN_KEY);
+
+      if (!profile.session_token) {
+        // Case A — claim this device
+        const newToken = crypto.randomUUID();
+        const { error: updateErr } = await sb
+          .from('profiles')
+          .update({
+            session_token: newToken,
+            last_login_at: new Date().toISOString(),
+            updated_at:    new Date().toISOString()
+          })
+          .eq('id', profile.id);
+
+        if (updateErr) {
+          await sb.auth.signOut();
+          showToast('Login error. Please try again.', 'error');
+          btn.disabled = false; btn.textContent = 'Sign In';
+          return;
+        }
+
+        localStorage.setItem(SESSION_TOKEN_KEY, newToken);
+
+      } else if (localToken === profile.session_token) {
+        // Case B — same device, just update last_login_at
+        await sb.from('profiles').update({
+          last_login_at: new Date().toISOString()
+        }).eq('id', profile.id);
+
+      } else {
+        // Case C — different device, reject immediately
+        await sb.auth.signOut();
+        showToast('This account is already active on another device.', 'error');
+
+        // Show the detailed banner too
+        const banner = document.getElementById('reason-banner');
+        document.getElementById('reason-text').textContent =
+          'This account is already active on another device. Contact an administrator to reset your session if you need access on this device.';
+        banner.classList.add('show');
+
+        btn.disabled = false; btn.textContent = 'Sign In';
+        return;
+      }
+
+      // Step 5 — all checks passed, redirect
       showToast('Signed in!', 'success');
       setTimeout(() => {
-        location.href = profile.role === 'admin' ? 'admin.html' : 'mcq.html';
+        location.href = profile.role === 'admin' ? 'admin.html' : 'app.html';
       }, 600);
     }
 
-    // ── Sign Up ───────────────────────────────────────────────
+    // ── SIGN UP ───────────────────────────────────────────────
     async function handleSignup(e) {
       e.preventDefault();
-      const btn  = document.getElementById('btn-signup');
-      const name = document.getElementById('signup-name').value.trim();
-      const email= document.getElementById('signup-email').value.trim();
-      const pass = document.getElementById('signup-password').value;
-      const conf = document.getElementById('signup-confirm').value;
+      const btn   = document.getElementById('btn-signup');
+      const name  = document.getElementById('signup-name').value.trim();
+      const email = document.getElementById('signup-email').value.trim();
+      const pass  = document.getElementById('signup-password').value;
+      const conf  = document.getElementById('signup-confirm').value;
 
       if (pass !== conf) { showToast('Passwords do not match', 'error'); return; }
 
@@ -328,27 +334,26 @@
 
       if (error) {
         showToast(error.message, 'error');
-        btn.disabled = false;
-        btn.textContent = 'Create Account';
+        btn.disabled = false; btn.textContent = 'Create Account';
         return;
       }
 
-      btn.disabled = false;
-      btn.textContent = 'Create Account';
-
+      btn.disabled = false; btn.textContent = 'Create Account';
       document.getElementById('form-signup').reset();
       switchTab('login');
       document.getElementById('pending-notice').classList.add('show');
     }
 
-    // ── Forgot password ───────────────────────────────────────
+    // ── FORGOT PASSWORD ───────────────────────────────────────
     async function handleForgot(e) {
       e.preventDefault();
       const email = document.getElementById('login-email').value.trim();
       if (!email) { showToast('Enter your email first', 'warn'); return; }
 
       const { error } = await sb.auth.resetPasswordForEmail(email, {
-        redirectTo: location.origin + location.pathname.replace('index.html','') + 'reset-password.html'
+        redirectTo: location.origin +
+          location.pathname.replace('index.html', '') +
+          'reset-password.html'
       });
 
       if (error) showToast(error.message, 'error');
