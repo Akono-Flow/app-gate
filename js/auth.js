@@ -1,17 +1,65 @@
 // ============================================================
-//  auth.js  v3  –  Shared authentication & access helpers
-//  Adds single-device session token enforcement.
+//  auth.js  v4  –  Shared authentication & access helpers
+//  Adds cross-domain session handoff so users only need to
+//  log in once and can access all apps on any subdomain.
+//
 //  Depends on: config.js  +  Supabase JS v2 (CDN)
+//
+//  DEPLOY THIS FILE TO EVERY REPO THAT USES THE AUTH SYSTEM.
 // ============================================================
 
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 
-// localStorage key where the device token is stored
+// ── Constants ─────────────────────────────────────────────────
 const SESSION_TOKEN_KEY = 'sb_device_token';
+
+// The full URL of your login page on your auth domain.
+// Every app uses this to redirect unauthenticated users.
+const LOGIN_URL = 'https://quiz-bizz.learnwithcole.com/index.html';
+
+// ── Step 1: Absorb a session handoff from the URL ────────────
+//
+//  When index.html redirects back to a gated app after login,
+//  it appends ?_at=<access_token>&_rt=<refresh_token> to the URL.
+//  This function detects those params, establishes a local
+//  Supabase session from them, then cleans the URL.
+//
+async function absorbSessionFromUrl() {
+  const params = new URLSearchParams(location.search);
+  const at = params.get('_at');
+  const rt = params.get('_rt');
+  const dt = params.get('_dt'); // device token
+
+  if (!at || !rt) return; // nothing to absorb
+
+  // Set the session in this domain's localStorage
+  const { error } = await sb.auth.setSession({
+    access_token:  at,
+    refresh_token: rt
+  });
+
+  if (!error && dt) {
+    // Restore the device token so the single-device check passes
+    localStorage.setItem(SESSION_TOKEN_KEY, dt);
+  }
+
+  // Clean the tokens out of the URL immediately
+  // (they should not sit in the address bar or browser history)
+  params.delete('_at');
+  params.delete('_rt');
+  params.delete('_dt');
+  params.delete('_next');
+  const cleanSearch = params.toString() ? '?' + params.toString() : '';
+  const cleanUrl = location.pathname + cleanSearch + location.hash;
+  history.replaceState(null, '', cleanUrl);
+}
 
 // ── Get current session + profile ────────────────────────────
 async function getSessionAndProfile() {
+  // Always try to absorb a handoff first
+  await absorbSessionFromUrl();
+
   const { data: { session } } = await sb.auth.getSession();
   if (!session) return { session: null, profile: null };
 
@@ -24,43 +72,38 @@ async function getSessionAndProfile() {
   return { session, profile: error ? null : profile };
 }
 
+// ── Build the login redirect URL ──────────────────────────────
+//  Appends ?next=<current url> so index.html can send the user
+//  back here after a successful login.
+function buildLoginUrl() {
+  return LOGIN_URL + '?next=' + encodeURIComponent(location.href);
+}
+
 // ── Guard: must be logged in, active, AND on this device ─────
-//
-//  Three checks in order:
-//  1. Is there a valid Supabase session?        → if not, go to login
-//  2. Is the account active?                    → if not, go to login
-//  3. Does the device token match Supabase?     → if not, sign out
-//     (This is what enforces the one-device rule)
-//
-async function requireAuth(redirectTo = 'index.html') {
+async function requireAuth() {
   const { session, profile } = await getSessionAndProfile();
 
-  // Check 1 — no session at all
+  // Not logged in → go to login, passing current URL as ?next
   if (!session) {
-    location.href = redirectTo;
+    location.href = buildLoginUrl();
     return null;
   }
 
-  // Check 2 — account not active
+  // Account not active
   if (!profile || !profile.is_active) {
     await sb.auth.signOut();
-    location.href = redirectTo + '?reason=inactive';
+    localStorage.removeItem(SESSION_TOKEN_KEY);
+    location.href = LOGIN_URL + '?reason=inactive';
     return null;
   }
 
-  // Check 3 — device token enforcement
-  // Only runs if the profile has a session_token set.
-  // If session_token is null it means the admin has reset it
-  // and the next login will claim the device freely.
+  // Single-device check
   if (profile.session_token) {
     const localToken = localStorage.getItem(SESSION_TOKEN_KEY);
-
     if (localToken !== profile.session_token) {
-      // This device is not the authorised one.
-      // Sign out of Supabase auth on this device and redirect.
       await sb.auth.signOut();
       localStorage.removeItem(SESSION_TOKEN_KEY);
-      location.href = redirectTo + '?reason=session_invalid';
+      location.href = LOGIN_URL + '?reason=session_invalid';
       return null;
     }
   }
@@ -69,21 +112,29 @@ async function requireAuth(redirectTo = 'index.html') {
 }
 
 // ── Guard: must be admin ──────────────────────────────────────
-async function requireAdmin(redirectTo = 'app.html') {
-  const result = await requireAuth('index.html');
+async function requireAdmin() {
+  const result = await requireAuth();
   if (!result) return null;
 
   if (result.profile.role !== 'admin') {
-    location.href = redirectTo + '?reason=forbidden';
+    location.href = LOGIN_URL + '?reason=forbidden';
     return null;
   }
   return result;
 }
 
 // ── Guard: must have access to a specific app by slug ────────
-async function requireAppAccess(appSlug, noAccessPage = 'no-access.html') {
-  // Not logged in → always send to login page
-  const result = await requireAuth('index.html');
+//
+//  Usage in any gated app:
+//    const result = await requireAppAccess('myslug');
+//    if (!result) return;
+//
+async function requireAppAccess(appSlug, noAccessPage = null) {
+  // Default no-access page is on the auth domain
+  const noAccess = noAccessPage ||
+    'https://quiz-bizz.learnwithcole.com/no-access.html';
+
+  const result = await requireAuth();
   if (!result) return null;
 
   const { session, profile } = result;
@@ -91,9 +142,9 @@ async function requireAppAccess(appSlug, noAccessPage = 'no-access.html') {
   // Admins bypass app-level checks entirely
   if (profile.role === 'admin') return result;
 
-  // User has no plan assigned
+  // No plan assigned
   if (!profile.plan_id) {
-    location.href = noAccessPage + '?reason=no_plan';
+    location.href = noAccess + '?reason=no_plan';
     return null;
   }
 
@@ -106,7 +157,7 @@ async function requireAppAccess(appSlug, noAccessPage = 'no-access.html') {
     .single();
 
   if (appErr || !app) {
-    location.href = noAccessPage + '?reason=app_unavailable';
+    location.href = noAccess + '?reason=app_unavailable';
     return null;
   }
 
@@ -119,8 +170,8 @@ async function requireAppAccess(appSlug, noAccessPage = 'no-access.html') {
     .maybeSingle();
 
   if (!access) {
-    const params = new URLSearchParams({ reason: 'no_access', app: app.name });
-    location.href = noAccessPage + '?' + params.toString();
+    const p = new URLSearchParams({ reason: 'no_access', app: app.name });
+    location.href = noAccess + '?' + p.toString();
     return null;
   }
 
@@ -131,7 +182,7 @@ async function requireAppAccess(appSlug, noAccessPage = 'no-access.html') {
 async function signOut() {
   localStorage.removeItem(SESSION_TOKEN_KEY);
   await sb.auth.signOut();
-  location.href = 'index.html';
+  location.href = LOGIN_URL;
 }
 
 // ── Toast notification helper ─────────────────────────────────
@@ -151,7 +202,7 @@ function showToast(message, type = 'info') {
   }, 3500);
 }
 
-// ── Shared styles (injected once) ────────────────────────────
+// ── Shared styles ─────────────────────────────────────────────
 (function injectSharedStyles() {
   if (document.getElementById('sb-shared-styles')) return;
   const s = document.createElement('style');
