@@ -258,7 +258,7 @@
     (async () => {
       const { session, profile } = await getSessionAndProfile();
       if (session && profile && profile.is_active) {
-        location.href = profile.role === 'admin' ? 'admin.html' : 'app.html';
+        location.href = profile.role === 'admin' ? 'admin.html' : 'mcq.html';
       }
     })();
 
@@ -303,7 +303,7 @@
 
       showToast('Signed in!', 'success');
       setTimeout(() => {
-        location.href = profile.role === 'admin' ? 'admin.html' : 'app.html';
+        location.href = profile.role === 'admin' ? 'admin.html' : 'mcq.html';
       }, 600);
     }
 
