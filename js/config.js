@@ -11,5 +11,5 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 //  APP CONFIGURATION
 // ============================================================
 
-const APP_NAME    = 'Quiz Bizz';          // Shown in headers & titles
+const APP_NAME    = 'Akono Gate';          // Shown in headers & titles
 const ADMIN_EMAIL = 'colem3846@gmail.com'; // First admin email (set in SQL too)
