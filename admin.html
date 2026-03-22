@@ -482,10 +482,11 @@
 
     // ── Load everything ───────────────────────────────────────
     async function loadAll() {
-      await Promise.all([loadUsers(), loadApps(), loadPlans()]);
+      // Plans must load first because renderUsers depends on allPlans
+      await loadPlans();
+      await Promise.all([loadUsers(), loadApps()]);
       updateStats();
     }
-
     // ── USERS ─────────────────────────────────────────────────
     async function loadUsers() {
       const { data, error } = await sb
