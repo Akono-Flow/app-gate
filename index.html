@@ -3,106 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login — MyApp</title>
+  <title>Login — Akono Gate</title>
   <link rel="stylesheet" href="css/style.css">
   <style>
-    body {
-      display: flex; align-items: center; justify-content: center;
-      min-height: 100vh; overflow: hidden; background: var(--bg);
-    }
-    body::before {
-      content: '';
-      position: fixed; inset: 0;
-      background-image:
-        linear-gradient(rgba(20,184,166,.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(20,184,166,.04) 1px, transparent 1px);
-      background-size: 40px 40px;
-      pointer-events: none; z-index: 0;
-    }
-    body::after {
-      content: '';
-      position: fixed; top: -40%; left: -20%;
-      width: 600px; height: 600px;
-      background: radial-gradient(circle, rgba(20,184,166,.07) 0%, transparent 60%);
-      pointer-events: none; z-index: 0;
-      animation: pulse 8s ease-in-out infinite;
-    }
-    @keyframes pulse {
-      0%,100% { transform:scale(1); opacity:.7; }
-      50%      { transform:scale(1.1); opacity:1; }
-    }
-    .auth-wrapper {
-      position: relative; z-index: 1;
-      width: 100%; max-width: 420px; padding: 1rem;
-      animation: fadeUp .5s ease both;
-    }
-    @keyframes fadeUp {
-      from { opacity:0; transform:translateY(16px); }
-      to   { opacity:1; transform:translateY(0); }
-    }
+    body { display:flex; align-items:center; justify-content:center; min-height:100vh; overflow:hidden; background:var(--bg); }
+    body::before { content:''; position:fixed; inset:0; background-image: linear-gradient(rgba(20,184,166,.04) 1px,transparent 1px), linear-gradient(90deg,rgba(20,184,166,.04) 1px,transparent 1px); background-size:40px 40px; pointer-events:none; z-index:0; }
+    body::after { content:''; position:fixed; top:-40%; left:-20%; width:600px; height:600px; background:radial-gradient(circle,rgba(20,184,166,.07) 0%,transparent 60%); pointer-events:none; z-index:0; animation:pulse 8s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{transform:scale(1);opacity:.7} 50%{transform:scale(1.1);opacity:1} }
+    .auth-wrapper { position:relative; z-index:1; width:100%; max-width:420px; padding:1rem; animation:fadeUp .5s ease both; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
     .auth-logo { text-align:center; margin-bottom:2rem; }
-    .auth-logo h1 {
-      font-family: var(--mono); font-size:1.75rem;
-      color:var(--accent); letter-spacing:.1em;
-    }
+    .auth-logo h1 { font-family:var(--mono); font-size:1.75rem; color:var(--accent); letter-spacing:.1em; }
     .auth-logo p { font-size:.875rem; color:var(--text-muted); margin-top:.25rem; }
-    .auth-card {
-      background:var(--surface); border:1px solid var(--border);
-      border-radius:var(--radius-lg); overflow:hidden;
-    }
+    .auth-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; }
     .auth-tabs { display:flex; border-bottom:1px solid var(--border); }
-    .auth-tab {
-      flex:1; padding:.9rem; background:none; border:none;
-      font-family:var(--sans); font-size:.9rem; font-weight:500;
-      color:var(--text-muted); cursor:pointer;
-      transition:color .2s, background .2s; position:relative;
-    }
-    .auth-tab::after {
-      content:''; position:absolute; bottom:-1px; left:0; right:0;
-      height:2px; background:var(--accent);
-      transform:scaleX(0); transition:transform .25s;
-    }
+    .auth-tab { flex:1; padding:.9rem; background:none; border:none; font-family:var(--sans); font-size:.9rem; font-weight:500; color:var(--text-muted); cursor:pointer; transition:color .2s,background .2s; position:relative; }
+    .auth-tab::after { content:''; position:absolute; bottom:-1px; left:0; right:0; height:2px; background:var(--accent); transform:scaleX(0); transition:transform .25s; }
     .auth-tab.active { color:var(--accent); background:rgba(20,184,166,.05); }
     .auth-tab.active::after { transform:scaleX(1); }
-    .auth-form {
-      padding:1.75rem; display:flex; flex-direction:column; gap:1.1rem;
-    }
+    .auth-form { padding:1.75rem; display:flex; flex-direction:column; gap:1.1rem; }
     .auth-form.hidden { display:none; }
-    .notice {
-      border-radius:var(--radius); padding:.75rem 1rem;
-      font-size:.875rem; display:none;
-    }
+    .notice { border-radius:var(--radius); padding:.75rem 1rem; font-size:.875rem; display:none; }
     .notice.show { display:flex; align-items:flex-start; gap:.5rem; }
-    .notice-warn  { background:rgba(234,179,8,.08);  border:1px solid rgba(234,179,8,.25);  color:#fde047; }
-    .notice-info  { background:rgba(20,184,166,.08); border:1px solid rgba(20,184,166,.2);  color:#5eead4; }
-    .notice-error { background:rgba(239,68,68,.1);   border:1px solid rgba(239,68,68,.3);   color:#fca5a5; }
-    .auth-footer {
-      text-align:center; padding:1rem 1.75rem;
-      border-top:1px solid var(--border);
-      font-size:.8125rem; color:var(--text-muted);
-    }
-
-    /* Handoff overlay — shown briefly while passing session to another domain */
-    #handoff-overlay {
-      display: none;
-      position: fixed; inset: 0;
-      background: var(--bg);
-      z-index: 9999;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 1rem;
-      font-family: var(--mono);
-      color: var(--accent);
-      font-size: 1rem;
-      letter-spacing: .08em;
-    }
-    #handoff-overlay.show { display: flex; }
+    .notice-error { background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.3); color:#fca5a5; }
+    .notice-info  { background:rgba(20,184,166,.08); border:1px solid rgba(20,184,166,.2); color:#5eead4; }
+    .auth-footer { text-align:center; padding:1rem 1.75rem; border-top:1px solid var(--border); font-size:.8125rem; color:var(--text-muted); }
+    #handoff-overlay { display:none; position:fixed; inset:0; background:var(--bg); z-index:9999; align-items:center; justify-content:center; flex-direction:column; gap:1rem; font-family:var(--mono); color:var(--accent); font-size:1rem; letter-spacing:.08em; }
+    #handoff-overlay.show { display:flex; }
   </style>
 </head>
 <body>
 
-  <!-- Session handoff overlay -->
   <div id="handoff-overlay">
     <div class="sb-spinner" style="width:32px;height:32px;border-width:3px;"></div>
     <span>Connecting…</span>
@@ -110,7 +41,7 @@
 
   <div class="auth-wrapper">
     <div class="auth-logo">
-      <h1 id="logo-name">MYAPP</h1>
+      <h1 id="logo-name">AKONO GATE</h1>
       <p>Secure access portal</p>
     </div>
 
@@ -120,12 +51,11 @@
         <button class="auth-tab"        id="tab-signup" onclick="switchTab('signup')">Sign Up</button>
       </div>
 
-      <!-- Reason / error banner -->
       <div id="reason-banner" class="notice notice-error" style="margin:1rem 1.75rem 0;">
         <span>⚠</span><span id="reason-text"></span>
       </div>
 
-      <!-- ── LOGIN FORM ── -->
+      <!-- LOGIN -->
       <form class="auth-form" id="form-login" onsubmit="handleLogin(event)">
         <div class="form-group">
           <label for="login-email">Email address</label>
@@ -144,7 +74,7 @@
         </div>
       </form>
 
-      <!-- ── SIGNUP FORM ── -->
+      <!-- SIGNUP -->
       <form class="auth-form hidden" id="form-signup" onsubmit="handleSignup(event)">
         <div class="form-group">
           <label for="signup-name">Full name</label>
@@ -168,9 +98,7 @@
         </p>
       </form>
 
-      <div class="auth-footer">
-        Protected by Supabase Auth · &copy; <span id="year"></span>
-      </div>
+      <div class="auth-footer">Protected by Supabase Auth · &copy; <span id="year"></span></div>
     </div>
   </div>
 
@@ -178,89 +106,72 @@
   <script src="js/config.js"></script>
   <script src="js/auth.js"></script>
   <script>
-    document.getElementById('logo-name').textContent = APP_NAME.toUpperCase();
-    document.title = `Login — ${APP_NAME}`;
+    document.getElementById('logo-name').textContent = (typeof APP_NAME !== 'undefined' ? APP_NAME : 'Akono Gate').toUpperCase();
+    document.title = `Login — ${typeof APP_NAME !== 'undefined' ? APP_NAME : 'Akono Gate'}`;
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // ── Read URL params ───────────────────────────────────────
-    const params = new URLSearchParams(location.search);
-    const reason  = params.get('reason');
-    const nextUrl = params.get('next'); // the app that sent the user here
+    // Read ?next= and ?reason= from URL — do this SYNCHRONOUSLY before any async code
+    const urlParams = new URLSearchParams(location.search);
+    const nextUrl   = urlParams.get('next');   // the app to return to after login
+    const reason    = urlParams.get('reason');
 
-    // ── Reason banner ─────────────────────────────────────────
+    // Show reason banner if present
     if (reason) {
       const msgs = {
         inactive:        'Your account has been deactivated. Please contact an administrator.',
         forbidden:       'You do not have permission to access that page.',
-        session_invalid: 'This account is already active on another device. Contact an administrator to reset your session if you need access on this device.',
+        session_invalid: 'This account is already active on another device. Contact an administrator to reset your session.',
         timeout:         'Your session expired. Please sign in again.',
       };
       document.getElementById('reason-text').textContent = msgs[reason] || 'Access denied.';
       document.getElementById('reason-banner').classList.add('show');
     }
 
-    // ── Core redirect function ────────────────────────────────
+    // ── After a successful login, figure out where to send the user ──
     //
-    //  Called after any successful login OR when the user is
-    //  already logged in and just passed through here.
+    //  If ?next= is present and it's a DIFFERENT domain:
+    //    → Pass session tokens in the URL so that domain can log in automatically
     //
-    //  If ?next= is present AND it's on a different domain →
-    //  do a session handoff: pass the access/refresh tokens
-    //  in the URL so the target domain can establish its own
-    //  local Supabase session.
+    //  If ?next= is present and it's the SAME domain:
+    //    → Just redirect there directly
     //
-    //  If ?next= is on THIS domain or absent →
-    //  redirect normally (no token handoff needed).
+    //  If ?next= is absent:
+    //    → Admin goes to admin.html, users go to app.html
     //
     async function redirectAfterLogin(profile) {
-      // Where does this user normally land on THIS domain?
+      // Default local destination
       const localDest = profile.role === 'admin' ? 'admin.html' : 'app.html';
 
       if (!nextUrl) {
-        // No external app waiting — go to local destination
         location.href = localDest;
         return;
       }
 
       let targetUrl;
       try { targetUrl = new URL(nextUrl); } catch(e) {
-        // Invalid URL — fall back to local
         location.href = localDest;
         return;
       }
 
-      const isSameDomain = targetUrl.origin === location.origin;
-
-      if (isSameDomain) {
-        // Same domain — just redirect normally, session already shared
+      if (targetUrl.origin === location.origin) {
+        // Same domain — no handoff needed
         location.href = nextUrl;
         return;
       }
 
-      // Different domain — perform session handoff
-      // Show the "Connecting…" overlay while we prepare the handoff
+      // Different domain — do a session handoff
       document.getElementById('handoff-overlay').classList.add('show');
 
       const { data: { session } } = await sb.auth.getSession();
-      if (!session) {
-        // Should not happen, but fall back gracefully
-        location.href = localDest;
-        return;
-      }
+      if (!session) { location.href = localDest; return; }
 
-      // Get the device token from localStorage to pass along
       const deviceToken = localStorage.getItem(SESSION_TOKEN_KEY) || '';
 
-      // Append tokens to the target URL as query params
-      // The target's auth.js will absorb and clean these on arrival
-      const handoffUrl = new URL(nextUrl);
-      handoffUrl.searchParams.set('_at',   session.access_token);
-      handoffUrl.searchParams.set('_rt',   session.refresh_token);
-      if (deviceToken) {
-        handoffUrl.searchParams.set('_dt', deviceToken);
-      }
+      targetUrl.searchParams.set('_at', session.access_token);
+      targetUrl.searchParams.set('_rt', session.refresh_token);
+      if (deviceToken) targetUrl.searchParams.set('_dt', deviceToken);
 
-      location.href = handoffUrl.toString();
+      location.href = targetUrl.toString();
     }
 
     // ── Auto-redirect if already logged in ───────────────────
@@ -268,13 +179,11 @@
       const { session, profile } = await getSessionAndProfile();
       if (!session || !profile || !profile.is_active) return;
 
-      // Device token check
       if (profile.session_token) {
         const local = localStorage.getItem(SESSION_TOKEN_KEY);
         if (local !== profile.session_token) return;
       }
 
-      // Already logged in — redirect (with handoff if needed)
       await redirectAfterLogin(profile);
     })();
 
@@ -287,7 +196,7 @@
       document.getElementById('reason-banner').classList.remove('show');
     }
 
-    // ── LOGIN ─────────────────────────────────────────────────
+    // ── Login ─────────────────────────────────────────────────
     async function handleLogin(e) {
       e.preventDefault();
       const btn   = document.getElementById('btn-login');
@@ -297,98 +206,85 @@
       btn.disabled = true;
       btn.innerHTML = '<span class="sb-spinner"></span> Signing in…';
 
-      // Step 1 — authenticate
+      // 1 — Authenticate
       const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
       if (error) {
         showToast(error.message, 'error');
-        btn.disabled = false; btn.textContent = 'Sign In';
-        return;
+        btn.disabled = false; btn.textContent = 'Sign In'; return;
       }
 
-      // Step 2 — fetch profile
+      // 2 — Load profile
       const { data: profile, error: profErr } = await sb
         .from('profiles').select('*').eq('id', data.user.id).single();
       if (profErr || !profile) {
         await sb.auth.signOut();
         showToast('Could not load your profile. Contact an admin.', 'error');
-        btn.disabled = false; btn.textContent = 'Sign In';
-        return;
+        btn.disabled = false; btn.textContent = 'Sign In'; return;
       }
 
-      // Step 3 — check active
+      // 3 — Must be active
       if (!profile.is_active) {
         await sb.auth.signOut();
         showToast('Your account is not yet active. Contact an admin.', 'error');
-        btn.disabled = false; btn.textContent = 'Sign In';
-        return;
+        btn.disabled = false; btn.textContent = 'Sign In'; return;
       }
 
-      // Step 4 — single device check
+      // 4 — Single-device check
       const localToken = localStorage.getItem(SESSION_TOKEN_KEY);
 
       if (!profile.session_token) {
-        // Case A — no device claimed yet, claim this one
+        // No device claimed yet — claim this one
         const newToken = crypto.randomUUID();
-        const { error: updateErr } = await sb.from('profiles').update({
+        const { error: upErr } = await sb.from('profiles').update({
           session_token: newToken,
           last_login_at: new Date().toISOString(),
           updated_at:    new Date().toISOString()
         }).eq('id', profile.id);
 
-        if (updateErr) {
+        if (upErr) {
           await sb.auth.signOut();
           showToast('Login error. Please try again.', 'error');
-          btn.disabled = false; btn.textContent = 'Sign In';
-          return;
+          btn.disabled = false; btn.textContent = 'Sign In'; return;
         }
         localStorage.setItem(SESSION_TOKEN_KEY, newToken);
         profile.session_token = newToken;
 
       } else if (localToken === profile.session_token) {
-        // Case B — same device logging in again
-        await sb.from('profiles').update({
-          last_login_at: new Date().toISOString()
-        }).eq('id', profile.id);
+        // Same device — just update last login
+        await sb.from('profiles').update({ last_login_at: new Date().toISOString() }).eq('id', profile.id);
 
       } else {
-        // Case C — different device, reject
+        // Different device — reject
         await sb.auth.signOut();
-        showToast('This account is already active on another device.', 'error');
         document.getElementById('reason-text').textContent =
-          'This account is already active on another device. Contact an administrator to reset your session if you need access on this device.';
+          'This account is already active on another device. Contact an administrator to reset your session.';
         document.getElementById('reason-banner').classList.add('show');
-        btn.disabled = false; btn.textContent = 'Sign In';
-        return;
+        btn.disabled = false; btn.textContent = 'Sign In'; return;
       }
 
-      // Step 5 — all good, redirect
+      // 5 — All good
       showToast('Signed in!', 'success');
       setTimeout(() => redirectAfterLogin(profile), 600);
     }
 
-    // ── SIGN UP ───────────────────────────────────────────────
+    // ── Sign up ───────────────────────────────────────────────
     async function handleSignup(e) {
       e.preventDefault();
-      const btn   = document.getElementById('btn-signup');
-      const name  = document.getElementById('signup-name').value.trim();
-      const email = document.getElementById('signup-email').value.trim();
-      const pass  = document.getElementById('signup-password').value;
-      const conf  = document.getElementById('signup-confirm').value;
+      const btn  = document.getElementById('btn-signup');
+      const name = document.getElementById('signup-name').value.trim();
+      const email= document.getElementById('signup-email').value.trim();
+      const pass = document.getElementById('signup-password').value;
+      const conf = document.getElementById('signup-confirm').value;
 
       if (pass !== conf) { showToast('Passwords do not match', 'error'); return; }
 
       btn.disabled = true;
       btn.innerHTML = '<span class="sb-spinner"></span> Creating account…';
 
-      const { error } = await sb.auth.signUp({
-        email, password: pass,
-        options: { data: { full_name: name } }
-      });
-
+      const { error } = await sb.auth.signUp({ email, password: pass, options: { data: { full_name: name } } });
       if (error) {
         showToast(error.message, 'error');
-        btn.disabled = false; btn.textContent = 'Create Account';
-        return;
+        btn.disabled = false; btn.textContent = 'Create Account'; return;
       }
 
       btn.disabled = false; btn.textContent = 'Create Account';
@@ -397,18 +293,14 @@
       document.getElementById('pending-notice').classList.add('show');
     }
 
-    // ── FORGOT PASSWORD ───────────────────────────────────────
+    // ── Forgot password ───────────────────────────────────────
     async function handleForgot(e) {
       e.preventDefault();
       const email = document.getElementById('login-email').value.trim();
       if (!email) { showToast('Enter your email first', 'warn'); return; }
-
       const { error } = await sb.auth.resetPasswordForEmail(email, {
-        redirectTo: location.origin +
-          location.pathname.replace('index.html', '') +
-          'reset-password.html'
+        redirectTo: location.origin + location.pathname.replace('index.html','') + 'reset-password.html'
       });
-
       if (error) showToast(error.message, 'error');
       else        showToast('Password reset email sent!', 'success');
     }
