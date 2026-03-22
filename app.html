@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>App — MyApp</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .welcome-hero {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem;
+      margin-bottom: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .welcome-hero::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 240px; height: 240px;
+      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .welcome-hero h2 {
+      font-family: var(--mono);
+      font-size: 1.4rem;
+      color: var(--accent);
+      margin-bottom: .5rem;
+    }
+    .welcome-hero p { color: var(--text-muted); max-width: 560px; line-height: 1.7; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+    }
+    .stat-card .stat-label {
+      font-family: var(--mono);
+      font-size: .7rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text-muted);
+      margin-bottom: .4rem;
+    }
+    .stat-card .stat-value {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    /* Demo placeholder content */
+    .placeholder-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      min-height: 240px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 1rem;
+      border-style: dashed;
+    }
+    .placeholder-section .ph-icon {
+      font-size: 3rem;
+      opacity: .3;
+    }
+    .placeholder-section h3 { color: var(--text-muted); font-weight: 500; }
+    .placeholder-section p  { color: var(--text-muted); font-size: .875rem; max-width: 380px; }
+
+    .profile-chip {
+      display: flex; align-items: center; gap: .6rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: .35rem .9rem .35rem .5rem;
+      font-size: .85rem;
+    }
+    .profile-chip .avatar {
+      width: 28px; height: 28px;
+      background: var(--accent);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono);
+      font-size: .75rem;
+      color: #000;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Loading overlay -->
+  <div id="page-loader">
+    <div class="loader-inner">
+      <div class="loader-logo" id="loader-logo">MYAPP</div>
+      <div class="sb-spinner" style="width:32px;height:32px;border-width:3px;"></div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="page-header">
+    <span class="logo" id="header-logo">MYAPP</span>
+    <div class="user-info">
+      <div class="profile-chip" id="profile-chip" style="display:none;">
+        <div class="avatar" id="user-avatar">?</div>
+        <span id="user-name-display">Loading…</span>
+        <span id="role-badge"></span>
+      </div>
+      <a href="admin.html" id="admin-link" style="display:none;" class="btn btn-ghost btn-sm">⚙ Admin</a>
+      <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign Out</button>
+    </div>
+  </header>
+
+  <!-- Main content -->
+  <main class="page-content" id="main-content" style="display:none;">
+
+    <div class="welcome-hero">
+      <h2>Welcome back, <span id="greeting-name">User</span></h2>
+      <p>
+        You are signed in as <strong id="greeting-email" style="color:var(--text)"></strong>.
+        This is your protected application area. Replace this section with your real app content.
+      </p>
+    </div>
+
+    <!-- Stats row -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Account Status</div>
+        <div class="stat-value" id="stat-status" style="color:var(--green)">Active</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Role</div>
+        <div class="stat-value" id="stat-role">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Member Since</div>
+        <div class="stat-value" id="stat-since" style="font-size:1.1rem">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Last Sign In</div>
+        <div class="stat-value" id="stat-login" style="font-size:1.1rem">—</div>
+      </div>
+    </div>
+
+    <!-- Placeholder for your actual app -->
+    <p class="section-title">Your Application</p>
+    <div class="placeholder-section">
+      <div class="ph-icon">🔧</div>
+      <h3>Build your app here</h3>
+      <p>
+        Replace this section in <code style="color:var(--accent)">app.html</code> with your actual application content.
+        This page is only accessible to logged-in users with an active account.
+      </p>
+      <button class="btn btn-ghost" onclick="showToast('Hello from the app!', 'success')">
+        Test Toast
+      </button>
+    </div>
+
+  </main>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    document.getElementById('header-logo').textContent = APP_NAME.toUpperCase();
+    document.getElementById('loader-logo').textContent = APP_NAME.toUpperCase();
+    document.title = `App — ${APP_NAME}`;
+
+    (async () => {
+      const result = await requireAuth('index.html');
+      if (!result) return;
+
+      const { session, profile } = result;
+
+      // Populate UI
+      const firstName = (profile.full_name || session.user.email).split(' ')[0];
+      const initials  = (profile.full_name || '?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+
+      document.getElementById('greeting-name').textContent   = firstName;
+      document.getElementById('greeting-email').textContent  = session.user.email;
+      document.getElementById('user-name-display').textContent = profile.full_name || session.user.email;
+      document.getElementById('user-avatar').textContent     = initials;
+      document.getElementById('stat-role').textContent       = profile.role;
+      document.getElementById('stat-since').textContent      = new Date(profile.created_at).toLocaleDateString();
+      document.getElementById('stat-login').textContent      = new Date(session.user.last_sign_in_at).toLocaleDateString();
+
+      // Role badge
+      const roleBadge = document.getElementById('role-badge');
+      roleBadge.className = `badge badge-${profile.role}`;
+      roleBadge.textContent = profile.role;
+
+      // Show admin link for admins
+      if (profile.role === 'admin') {
+        document.getElementById('admin-link').style.display = 'inline-flex';
+      }
+
+      document.getElementById('profile-chip').style.display = 'flex';
+      document.getElementById('main-content').style.display = 'block';
+
+      // Hide loader
+      const loader = document.getElementById('page-loader');
+      loader.classList.add('hidden');
+      setTimeout(() => loader.remove(), 500);
+    })();
+  </script>
+</body>
+</html>

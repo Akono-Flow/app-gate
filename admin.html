@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — MyApp</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .admin-layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      min-height: calc(100vh - 57px);
+    }
+
+    /* Sidebar */
+    .admin-sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 1.5rem 0;
+      position: sticky;
+      top: 57px;
+      height: calc(100vh - 57px);
+      overflow-y: auto;
+    }
+    .sidebar-section {
+      padding: 0 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .sidebar-label {
+      font-family: var(--mono);
+      font-size: .65rem;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--text-muted);
+      padding: 0 .5rem;
+      margin-bottom: .5rem;
+    }
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      padding: .5rem .75rem;
+      border-radius: 8px;
+      font-size: .9rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: background .2s, color .2s;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+    .sidebar-link:hover, .sidebar-link.active {
+      background: rgba(20,184,166,.1);
+      color: var(--accent);
+    }
+
+    /* Main area */
+    .admin-main { padding: 2rem; overflow-y: auto; }
+
+    /* Stats */
+    .admin-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .admin-stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.25rem;
+    }
+    .admin-stat .as-label {
+      font-family: var(--mono);
+      font-size: .68rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text-muted);
+    }
+    .admin-stat .as-value {
+      font-size: 1.75rem;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    /* User table card */
+    .table-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .table-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .table-toolbar h2 {
+      font-family: var(--mono);
+      font-size: .85rem;
+      letter-spacing: .06em;
+      color: var(--text);
+    }
+    .search-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .search-input-wrap input {
+      padding-left: 2.2rem;
+      width: 220px;
+      font-size: .875rem;
+    }
+    .search-icon {
+      position: absolute; left: .75rem;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .user-name-cell { font-weight: 500; color: var(--text); }
+    .user-email-cell { font-size: .82rem; color: var(--text-muted); font-family: var(--mono); }
+
+    .toggle-btn {
+      font-size: .78rem;
+      padding: .3rem .75rem;
+    }
+
+    /* Edit role inline */
+    .role-select {
+      font-size: .8rem;
+      padding: .25rem .6rem;
+      width: auto;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-muted);
+      font-size: .9rem;
+    }
+
+    /* Confirm overlay */
+    #confirm-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.7);
+      z-index: 500;
+      align-items: center;
+      justify-content: center;
+    }
+    #confirm-overlay.show { display: flex; }
+    .confirm-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      max-width: 380px;
+      width: calc(100% - 2rem);
+      animation: fadeUp .2s ease;
+    }
+    .confirm-box h3 { margin-bottom: .5rem; }
+    .confirm-box p  { color: var(--text-muted); font-size: .9rem; margin-bottom: 1.5rem; }
+    .confirm-actions { display: flex; gap: .75rem; justify-content: flex-end; }
+
+    @media (max-width: 768px) {
+      .admin-layout { grid-template-columns: 1fr; }
+      .admin-sidebar {
+        display: none; /* simplify on mobile; can add a hamburger later */
+      }
+      .admin-main { padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Loading overlay -->
+  <div id="page-loader">
+    <div class="loader-inner">
+      <div class="loader-logo" id="loader-logo">MYAPP</div>
+      <div class="sb-spinner" style="width:32px;height:32px;border-width:3px;"></div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="page-header">
+    <span class="logo" id="header-logo">MYAPP</span>
+    <div class="user-info">
+      <span style="font-family:var(--mono);font-size:.75rem;color:var(--accent)">ADMIN</span>
+      <span id="admin-email-display">—</span>
+      <a href="app.html" class="btn btn-ghost btn-sm">← App</a>
+      <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign Out</button>
+    </div>
+  </header>
+
+  <!-- Admin layout -->
+  <div class="admin-layout" id="admin-layout" style="display:none;">
+
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Manage</div>
+        <button class="sidebar-link active" onclick="showPanel('users')">👥 Users</button>
+        <button class="sidebar-link" onclick="showPanel('settings')">⚙ App Settings</button>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Links</div>
+        <button class="sidebar-link" onclick="window.open('https://supabase.com/dashboard','_blank')">🔗 Supabase Dashboard</button>
+        <button class="sidebar-link" onclick="window.open('https://github.com','_blank')">🔗 GitHub Repo</button>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="admin-main">
+
+      <!-- Stats -->
+      <div class="admin-stats" id="admin-stats">
+        <div class="admin-stat">
+          <div class="as-label">Total Users</div>
+          <div class="as-value" id="stat-total">—</div>
+        </div>
+        <div class="admin-stat">
+          <div class="as-label">Active</div>
+          <div class="as-value" id="stat-active" style="color:var(--green)">—</div>
+        </div>
+        <div class="admin-stat">
+          <div class="as-label">Inactive</div>
+          <div class="as-value" id="stat-inactive" style="color:var(--red)">—</div>
+        </div>
+        <div class="admin-stat">
+          <div class="as-label">Admins</div>
+          <div class="as-value" id="stat-admins" style="color:var(--accent)">—</div>
+        </div>
+      </div>
+
+      <!-- PANEL: Users -->
+      <div id="panel-users">
+        <div class="table-card">
+          <div class="table-toolbar">
+            <h2>USER MANAGEMENT</h2>
+            <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;">
+              <div class="search-input-wrap">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="search-input" placeholder="Search users…" oninput="filterUsers()">
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="loadUsers()">↺ Refresh</button>
+            </div>
+          </div>
+
+          <div style="overflow-x:auto;">
+            <table class="data-table" id="users-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Joined</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="users-tbody">
+                <tr><td colspan="6" class="empty-state">Loading users…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL: Settings -->
+      <div id="panel-settings" style="display:none;">
+        <div class="card">
+          <p class="section-title">App Settings</p>
+          <p style="color:var(--text-muted); font-size:.9rem;">
+            Add your application settings here. For now, edit
+            <code style="color:var(--accent)">js/config.js</code> to change
+            <code>APP_NAME</code> and other globals.
+          </p>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Confirm dialog -->
+  <div id="confirm-overlay">
+    <div class="confirm-box">
+      <h3 id="confirm-title">Confirm Action</h3>
+      <p id="confirm-msg"></p>
+      <div class="confirm-actions">
+        <button class="btn btn-ghost" onclick="closeConfirm()">Cancel</button>
+        <button class="btn btn-danger" id="confirm-ok-btn" onclick="confirmAction()">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    document.getElementById('header-logo').textContent = APP_NAME.toUpperCase();
+    document.getElementById('loader-logo').textContent = APP_NAME.toUpperCase();
+    document.title = `Admin — ${APP_NAME}`;
+
+    let allUsers   = [];
+    let pendingAction = null;  // { type, userId, value }
+
+    // ── Init ─────────────────────────────────────────────────
+    (async () => {
+      const result = await requireAdmin('app.html');
+      if (!result) return;
+
+      document.getElementById('admin-email-display').textContent = result.session.user.email;
+      document.getElementById('admin-layout').style.display = 'grid';
+
+      const loader = document.getElementById('page-loader');
+      loader.classList.add('hidden');
+      setTimeout(() => loader.remove(), 500);
+
+      await loadUsers();
+    })();
+
+    // ── Panel switcher ────────────────────────────────────────
+    function showPanel(name) {
+      document.getElementById('panel-users').style.display    = name === 'users'    ? 'block' : 'none';
+      document.getElementById('panel-settings').style.display = name === 'settings' ? 'block' : 'none';
+      document.querySelectorAll('.sidebar-link').forEach((el,i) => {
+        el.classList.toggle('active', (name === 'users' && i===0) || (name === 'settings' && i===1));
+      });
+    }
+
+    // ── Load all users ────────────────────────────────────────
+    async function loadUsers() {
+      document.getElementById('users-tbody').innerHTML =
+        '<tr><td colspan="6" class="empty-state">Loading…</td></tr>';
+
+      const { data, error } = await sb
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        showToast('Error loading users: ' + error.message, 'error');
+        return;
+      }
+
+      allUsers = data || [];
+      updateStats();
+      renderUsers(allUsers);
+    }
+
+    // ── Update stat cards ─────────────────────────────────────
+    function updateStats() {
+      document.getElementById('stat-total').textContent   = allUsers.length;
+      document.getElementById('stat-active').textContent  = allUsers.filter(u=>u.is_active).length;
+      document.getElementById('stat-inactive').textContent= allUsers.filter(u=>!u.is_active).length;
+      document.getElementById('stat-admins').textContent  = allUsers.filter(u=>u.role==='admin').length;
+    }
+
+    // ── Render table rows ─────────────────────────────────────
+    function renderUsers(users) {
+      const tbody = document.getElementById('users-tbody');
+      if (!users.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No users found.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = users.map(u => `
+        <tr id="row-${u.id}">
+          <td class="user-name-cell">${escHtml(u.full_name || '—')}</td>
+          <td class="user-email-cell">${escHtml(u.email)}</td>
+          <td>
+            <select class="role-select" onchange="setRole('${u.id}', this.value)">
+              <option value="user"  ${u.role==='user'  ? 'selected' : ''}>user</option>
+              <option value="admin" ${u.role==='admin' ? 'selected' : ''}>admin</option>
+            </select>
+          </td>
+          <td>
+            <span class="badge badge-${u.is_active ? 'active' : 'inactive'}">
+              ${u.is_active ? '● Active' : '○ Inactive'}
+            </span>
+          </td>
+          <td style="color:var(--text-muted);font-size:.82rem;">
+            ${new Date(u.created_at).toLocaleDateString()}
+          </td>
+          <td>
+            <div style="display:flex;gap:.4rem;flex-wrap:wrap;">
+              <button
+                class="btn btn-sm ${u.is_active ? 'btn-danger' : 'btn-success'} toggle-btn"
+                onclick="confirmToggle('${u.id}', ${u.is_active}, '${escHtml(u.email)}')">
+                ${u.is_active ? 'Deactivate' : 'Activate'}
+              </button>
+              <button class="btn btn-ghost btn-sm" onclick="confirmDelete('${u.id}', '${escHtml(u.email)}')">
+                🗑
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // ── Filter by search ──────────────────────────────────────
+    function filterUsers() {
+      const q = document.getElementById('search-input').value.toLowerCase();
+      const filtered = allUsers.filter(u =>
+        (u.full_name||'').toLowerCase().includes(q) ||
+        (u.email||'').toLowerCase().includes(q)
+      );
+      renderUsers(filtered);
+    }
+
+    // ── Toggle active ─────────────────────────────────────────
+    function confirmToggle(userId, currentActive, email) {
+      const action = currentActive ? 'deactivate' : 'activate';
+      document.getElementById('confirm-title').textContent = `${action.charAt(0).toUpperCase() + action.slice(1)} User`;
+      document.getElementById('confirm-msg').textContent   = `Are you sure you want to ${action} "${email}"?`;
+      document.getElementById('confirm-ok-btn').className  = currentActive ? 'btn btn-danger' : 'btn btn-success';
+      document.getElementById('confirm-ok-btn').textContent = action.charAt(0).toUpperCase() + action.slice(1);
+      pendingAction = { type: 'toggle', userId, value: !currentActive };
+      document.getElementById('confirm-overlay').classList.add('show');
+    }
+
+    async function doToggle(userId, newActive) {
+      const { error } = await sb
+        .from('profiles')
+        .update({ is_active: newActive, updated_at: new Date().toISOString() })
+        .eq('id', userId);
+
+      if (error) { showToast('Update failed: ' + error.message, 'error'); return; }
+      showToast(`User ${newActive ? 'activated' : 'deactivated'}.`, newActive ? 'success' : 'warn');
+      await loadUsers();
+    }
+
+    // ── Set role ──────────────────────────────────────────────
+    async function setRole(userId, newRole) {
+      const { error } = await sb
+        .from('profiles')
+        .update({ role: newRole, updated_at: new Date().toISOString() })
+        .eq('id', userId);
+
+      if (error) { showToast('Role update failed: ' + error.message, 'error'); return; }
+      showToast(`Role changed to "${newRole}".`, 'success');
+      const u = allUsers.find(u => u.id === userId);
+      if (u) u.role = newRole;
+      updateStats();
+    }
+
+    // ── Delete user ───────────────────────────────────────────
+    function confirmDelete(userId, email) {
+      document.getElementById('confirm-title').textContent  = 'Delete User';
+      document.getElementById('confirm-msg').textContent    = `Permanently delete "${email}"? This cannot be undone.`;
+      document.getElementById('confirm-ok-btn').className   = 'btn btn-danger';
+      document.getElementById('confirm-ok-btn').textContent = 'Delete';
+      pendingAction = { type: 'delete', userId };
+      document.getElementById('confirm-overlay').classList.add('show');
+    }
+
+    async function doDelete(userId) {
+      // NOTE: Deleting from auth.users requires a service-role key (server-side).
+      // This deletes the profile row. The auth user remains but cannot access the app.
+      // For full deletion, use a Supabase Edge Function or the dashboard.
+      const { error } = await sb.from('profiles').delete().eq('id', userId);
+      if (error) { showToast('Delete failed: ' + error.message, 'error'); return; }
+      showToast('Profile deleted. Auth account still exists in Supabase — remove it from the dashboard if needed.', 'warn');
+      await loadUsers();
+    }
+
+    // ── Confirm dialog ────────────────────────────────────────
+    async function confirmAction() {
+      closeConfirm();
+      if (!pendingAction) return;
+      if (pendingAction.type === 'toggle') await doToggle(pendingAction.userId, pendingAction.value);
+      if (pendingAction.type === 'delete') await doDelete(pendingAction.userId);
+      pendingAction = null;
+    }
+    function closeConfirm() {
+      document.getElementById('confirm-overlay').classList.remove('show');
+    }
+    document.getElementById('confirm-overlay').addEventListener('click', e => {
+      if (e.target === e.currentTarget) closeConfirm();
+    });
+
+    // ── Utility ───────────────────────────────────────────────
+    function escHtml(str) {
+      return String(str)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 — Page Not Found</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body { display:flex; align-items:center; justify-content:center; min-height:100vh; }
+    .not-found {
+      text-align:center;
+      animation: fadeUp .5s ease;
+    }
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(12px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .not-found .code {
+      font-family: var(--mono);
+      font-size: 6rem;
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1;
+      opacity: .3;
+    }
+    .not-found h2 { font-size:1.25rem; margin: .5rem 0; }
+    .not-found p  { color:var(--text-muted); margin-bottom:1.5rem; }
+  </style>
+</head>
+<body>
+  <div class="not-found">
+    <div class="code">404</div>
+    <h2>Page not found</h2>
+    <p>The page you're looking for doesn't exist.</p>
+    <a href="index.html" class="btn btn-primary">← Go Home</a>
+  </div>
+  <script src="js/config.js"></script>
+  <script>
+    // Dynamic title
+    document.title = `404 — ${typeof APP_NAME !== 'undefined' ? APP_NAME : 'App'}`;
+  </script>
+</body>
+</html>
